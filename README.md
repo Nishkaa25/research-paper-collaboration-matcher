@@ -1,346 +1,194 @@
-# Research Paper Collaboration Matcher (RPCM)
+# Research Paper Collaboration Matcher
 
-A semantic research discovery and collaboration platform that connects researchers based on their research interests, published papers, and semantic similarity.
+A web-based platform that helps researchers discover relevant research papers and identify potential research collaborators using semantic similarity.
 
-**Course:** DBMS Experiential Learning – Level 3 Project  
-**Institution:** PES University, Department of Computer Science and Engineering
+The system uses natural language processing and vector-based search to go beyond keyword matching. Researchers can explore papers, find people working in related areas, and manage collaboration requests through a single platform.
 
-## Team Members
+## Team
 
-| Name | SRN |
-|---|---|
-| Nishkaa V | PES2UG24CS907 |
-| Arjav Chandranath | PES2UG24CS080 |
+**Nishkaa V** — PES2UG24CS907  
+**Arjav Chandranath** — PES2UG24CS080
+
+Department of Computer Science and Engineering  
+PES University
 
 ---
 
 ## 1. Project Overview
 
-Research collaboration often requires researchers to manually search through publications, identify people working on similar topics, and determine whether potential collaborators have compatible research interests.
+Research Paper Collaboration Matcher (RPCM) is designed to make academic collaboration easier by connecting researchers based on the similarity of their research interests.
 
-The Research Paper Collaboration Matcher (RPCM) aims to simplify this process through semantic search, vector embeddings, and relational database operations.
+Traditional search systems often rely on exact keyword matches. RPCM instead represents research papers and researcher profiles as numerical vectors, allowing the system to identify related research even when different terminology is used.
 
-The platform allows researchers to:
+The platform combines a web application, a relational database, and vector similarity search to support paper discovery and researcher recommendations.
 
-- Create and manage researcher profiles.
-- Publish and browse research papers.
-- Search papers using natural-language queries.
-- Discover researchers with semantically similar research interests.
-- View researcher profiles and their associated publications.
-- Send, receive, accept, reject, and manage collaboration requests.
-- Explore research analytics and collaboration information.
+## 2. Features
 
-Unlike a conventional keyword-based search system, RPCM uses sentence embeddings and vector similarity to identify relationships between research papers and researcher profiles.
+- **Semantic Paper Search:** Search for research papers based on meaning and context rather than exact keywords.
+- **Researcher Matching:** Discover potential collaborators based on the semantic similarity of their research profiles.
+- **Researcher Profiles:** View researcher information, research interests, and associated publications.
+- **Paper Library:** Browse available research papers and access their details and full-text documents.
+- **Collaboration Requests:** Send, accept, reject, and withdraw collaboration requests.
+- **Match Results:** View researcher recommendations with similarity scores and relevant research information.
+- **Admin Functionality:** Support administrative access and platform management.
 
-## 2. Technology Stack
+## 3. Technology Stack
 
-### Frontend
-
-| Technology | Purpose |
+| Component | Technology |
 |---|---|
-| Next.js 14 | React-based application framework and application routing |
-| React | Component-based user interface |
-| TypeScript | Type safety and maintainable application code |
-| CSS / CSS Modules | Styling and responsive page layouts |
+| Frontend | Next.js, React, TypeScript |
+| Backend | Next.js API Routes |
+| Database | PostgreSQL |
+| Database Hosting | Neon |
+| Vector Database Extension | pgvector |
+| Embedding Model | Sentence Transformers – `all-MiniLM-L6-v2` |
+| Embedding Processing | Python, NumPy |
+| Database Connectivity | Psycopg |
+| Query Language | SQL |
 
-The frontend includes the researcher dashboard, login interface, paper library, semantic matcher, profile pages, collaboration request interface, analytics pages, and academic paper reader.
+### Technologies and techniques used
 
-### Backend
+**Next.js and React:** Used to build the web interface and application functionality.
 
-| Technology | Purpose |
-|---|---|
-| Next.js API Routes | Server-side endpoints and application backend |
-| Node.js | JavaScript runtime |
-| TypeScript | Backend implementation and type checking |
-| PostgreSQL | Relational data storage |
-| Neon | Managed cloud PostgreSQL database |
+**TypeScript:** Provides type safety for the application code.
 
-The backend handles authentication, researcher information, paper management, semantic search, collaboration requests, and database operations.
+**PostgreSQL:** Stores researcher information, papers, authorship relationships, topics, embeddings, match results, and collaboration requests.
 
-### Database and Vector Search
+**pgvector:** Enables vector storage and similarity search directly within PostgreSQL.
 
-| Technology | Purpose |
-|---|---|
-| PostgreSQL | Stores relational application data |
-| Neon PostgreSQL | Cloud-hosted database |
-| pgvector | Stores and searches high-dimensional vector embeddings |
-| SQL | Schema creation, queries, joins, views, functions and triggers |
-| Psycopg | Python-to-PostgreSQL database connectivity |
+**Sentence Transformers:** The `all-MiniLM-L6-v2` model generates 384-dimensional embeddings from research paper text.
 
-RPCM uses a relational database alongside vector search. This allows conventional SQL operations and semantic similarity search to work together.
+**Python:** Used for generating paper and researcher embeddings and processing the embedding pipeline.
 
-### Machine Learning and Embeddings
+**SQL:** Used for database design, relational queries, views, stored functions, and triggers.
 
-| Technology | Purpose |
-|---|---|
-| Python | Embedding generation and database processing scripts |
-| Sentence Transformers | Generates semantic sentence embeddings |
-| all-MiniLM-L6-v2 | Pretrained sentence-transformer model |
-| Hugging Face | Hosts the pretrained model and its downloadable files |
-| NumPy | Numerical operations on embedding vectors |
+## 4. System Architecture
 
-## 3. Semantic Embedding Generation
+RPCM follows a layered architecture in which the frontend communicates with backend API routes, which interact with the PostgreSQL database.
 
-RPCM uses the pretrained `sentence-transformers/all-MiniLM-L6-v2` model to generate semantic representations of research papers.
+```text
+             USER
+               |
+               v
+       NEXT.JS FRONTEND
+        (React + TypeScript)
+               |
+               v
+       NEXT.JS API ROUTES
+               |
+               v
+       POSTGRESQL DATABASE
+          (NEON)
+               |
+        +------+------+
+        |             |
+        v             v
+   RELATIONAL       PGVECTOR
+     DATA          EMBEDDINGS
+        |             |
+        +------+------+
+               |
+               v
+       SIMILARITY SEARCH
+        AND MATCHING
+               |
+               v
+       RESULTS DISPLAYED
+          TO USER
+```
 
-The model converts textual content into numerical vectors containing **384 dimensions**.
+### Embedding and matching workflow
 
-### Paper Embeddings
+1. Research paper information, including titles and abstracts, is processed using the Sentence Transformers model.
+2. The model generates a 384-dimensional vector representation for each paper.
+3. Researcher embeddings are generated by taking the mean of the embeddings of their associated papers.
+4. Paper and researcher embeddings are stored in PostgreSQL using pgvector.
+5. Cosine similarity is used to identify semantically related papers and researchers.
+6. SQL functions combine similarity results with relational information to produce researcher recommendations.
 
-For each paper, the system uses its textual content, particularly its title and abstract, to generate a semantic embedding.
-
-The generated vector is stored in the `paper_embedding` table alongside the associated paper ID and model information.
-
-### Researcher Embeddings
-
-A researcher may have multiple published papers.
-
-Instead of representing a researcher using only one paper, RPCM constructs a researcher-level embedding by calculating the mean of the embeddings of their associated papers.
-
-Conceptually:
-
-`Researcher Embedding = Mean(Paper Embeddings)`
-
-This creates a consolidated representation of the researcher's overall interests.
-
-The resulting researcher embedding is stored in `researcher_embedding`.
-
-## 4. How pgvector Is Used
-
-pgvector is a PostgreSQL extension that enables vector storage and similarity operations directly inside the relational database.
-
-RPCM uses pgvector to store the 384-dimensional embeddings generated by MiniLM.
-
-The application uses cosine similarity to compare vectors and identify semantically related papers and researchers.
-
-The general cosine similarity formula is:
-
-`similarity(A, B) = (A · B) / (||A|| × ||B||)`
-
-A higher similarity score indicates a stronger directional similarity between the vectors.
-
-### Semantic Collaborator Matching
-
-The collaborator matching workflow is as follows:
-
-1. Retrieve the target researcher's embedding.
-2. Compare it with other researcher embeddings using vector similarity.
-3. Rank potential collaborators according to similarity.
-4. Enrich the results using relational database information.
-5. Retrieve shared research topics and publication information.
-6. Exclude the researcher's existing co-authors from recommendations.
-7. Return the ranked collaborator recommendations.
-
-The database function `find_similar_researchers()` performs the collaborator recommendation operation.
-
-The application also considers relational information such as shared topics and existing co-authorship relationships.
-
-### Semantic Paper Search
-
-RPCM also supports semantic paper search.
-
-A natural-language query is converted into an embedding using the same MiniLM model.
-
-The query embedding is compared with stored paper embeddings to retrieve papers based on semantic similarity rather than exact keyword matching.
+The matching process also considers information such as shared research topics, publication counts, and existing authorship relationships.
 
 ## 5. Database Design
 
-The project uses a relational database schema to represent researchers, publications, authorship, topics, embeddings, and collaboration activity.
+The database uses a relational model, with pgvector support for storing and comparing embeddings.
 
-Important database entities include:
+The main tables include:
 
 | Table | Purpose |
 |---|---|
-| `researcher` | Stores researcher profiles and account information |
-| `paper` | Stores research paper metadata and abstracts |
-| `paper_author` | Represents the many-to-many relationship between researchers and papers |
+| `researcher` | Stores researcher information |
+| `paper` | Stores research paper details |
+| `paper_author` | Represents the relationship between papers and their authors |
 | `topic` | Stores research topics |
-| `researcher_topic` | Associates researchers with research topics |
-| `paper_topic` | Associates papers with research topics |
-| `paper_embedding` | Stores paper-level vector embeddings |
-| `researcher_embedding` | Stores researcher-level vector embeddings |
-| `match_result` | Stores collaborator matching results |
-| `collaboration_request` | Stores collaboration requests and their statuses |
+| `researcher_topic` | Connects researchers to their research interests |
+| `paper_topic` | Connects papers to relevant topics |
+| `paper_embedding` | Stores paper embeddings |
+| `researcher_embedding` | Stores researcher embeddings |
+| `match_result` | Stores researcher matching results |
+| `collaboration_request` | Manages collaboration requests |
 
-The `paper_author` table is particularly important because multiple researchers can author one paper, and one researcher can publish multiple papers.
+The `paper_author` table handles the many-to-many relationship between researchers and papers. Separate embedding tables keep vector data distinct from the main relational records.
 
-This is implemented through an associative entity representing the many-to-many relationship.
+## 6. Project Structure
 
-### Database Features
-
-The project incorporates:
-
-- DDL operations for database creation and modification.
-- DML operations for inserting, updating and deleting records.
-- Relational queries using joins and subqueries.
-- Views for retrieving structured information.
-- Stored functions for collaborator matching and other operations.
-- Triggers for maintaining database consistency.
-- Constraints and keys for enforcing data integrity.
-- Role-based database security and access control.
-- Vector operations through pgvector.
-
-## 6. Main Application Features
-
-### 6.1 Researcher Authentication
-
-Researchers can log in and access their respective application interfaces.
-
-The application includes authentication-related API endpoints for login, logout, and retrieving the current user.
-
-### 6.2 Researcher Dashboard
-
-The dashboard provides an overview of researcher information, publication activity, and collaboration-related data.
-
-### 6.3 Research Paper Library
-
-Users can browse available research papers and inspect their titles, abstracts, authors, and associated topics.
-
-### 6.4 Semantic Paper Search
-
-Users can enter natural-language queries and discover relevant papers through MiniLM-generated embeddings and vector similarity search.
-
-### 6.5 Semantic Collaborator Matcher
-
-The collaborator matcher identifies researchers with similar research interests using researcher-level embeddings.
-
-Recommendations include similarity information, shared topics, and existing co-authorship information.
-
-### 6.6 Researcher Profiles
-
-Researcher profiles display information about individual researchers and their associated publications.
-
-### 6.7 Collaboration Requests
-
-Researchers can send collaboration requests to potential collaborators.
-
-The application supports request management, including:
-
-- Sending requests.
-- Viewing received requests.
-- Accepting requests.
-- Rejecting requests.
-- Withdrawing requests.
-
-### 6.8 Research Analytics
-
-The application includes analytics interfaces for examining research and collaboration-related information.
-
-### 6.9 Academic Research Paper Reader
-
-RPCM includes an IEEE-inspired, two-column academic paper reader.
-
-The reader presents synthetic full-text documents using an academic paper structure, including:
-
-- Paper title and author information.
-- Abstract.
-- Index Terms.
-- Numbered academic sections.
-- Methodology and proposed evaluation sections.
-- Discussion and conclusion.
-- Publication metadata.
-
-The document generator uses paper-specific information to produce more contextually relevant synthetic research documents.
-
-**Important:** These documents are synthetic demonstrations, not actual peer-reviewed publications. Their generated methodology and evaluation discussions should not be interpreted as verified experimental findings.
-
-## 7. Synthetic Dataset
-
-The current demonstration environment uses synthetic researcher and research-paper records.
-
-The initial dataset contained 40 papers and 20 researcher accounts, with additional demonstration papers subsequently added.
-
-The database has been populated with generated paper embeddings and researcher-level embeddings.
-
-Synthetic data allows the application to demonstrate:
-
-- Semantic paper discovery.
-- Researcher similarity calculations.
-- Topic overlap.
-- Co-authorship relationships.
-- Collaboration request workflows.
-- Academic document presentation.
-
-Although the records are synthetic, the embeddings are generated using the actual pretrained Sentence Transformers model.
-
-## 8. Project Structure
+The repository is organised into application code, database scripts, and embedding utilities.
 
 ```text
-rpcm_project/
+research-paper-collaboration-matcher/
 │
 ├── app/
-│   ├── admin/
-│   ├── api/
-│   │   ├── admin/
-│   │   ├── analytics/
-│   │   ├── auth/
-│   │   ├── matches/
-│   │   ├── papers/
-│   │   ├── requests/
-│   │   ├── researchers/
-│   │   └── topics/
-│   ├── dashboard/
 │   ├── login/
-│   ├── matcher/
-│   ├── papers/
-│   ├── profile/
-│   ├── queries/
-│   └── requests/
+│   └── ...                 # Pages and API routes
 │
-├── components/
-│   └── Navbar.tsx
-│
-├── diagrams/
-│   ├── architecture.png
-│   ├── schema_final.png
-│   └── ...
+├── components/             # Reusable UI components
 │
 ├── lib/
-│   ├── auth.ts
-│   ├── db.ts
-│   └── embeddings.ts
+│   └── embeddings.ts       # Embedding-related utilities
 │
 ├── scripts/
 │   ├── embed_single_paper.py
 │   ├── refresh_synthetic_paper_documents.py
 │   └── seed_synthetic_paper_documents.py
 │
-├── sql/
-│   ├── 01_schema.sql
-│   ├── 02_alter_ddl.sql
-│   ├── 03_views_functions_triggers.sql
-│   ├── 04_seed.sql
-│   ├── 05_dml_operations.sql
-│   ├── 06_queries.sql
-│   ├── 07_tests.sql
-│   ├── 08_security_roles.sql
-│   └── 10_create_synthetic_paper_documents.sql
+├── 01_schema.sql
+├── 02_alter_ddl.sql
+├── 03_views_functions_triggers.sql
+├── 04_seed.sql
+├── 05_dml_operations.sql
+├── 06_queries.sql
+├── 07_tests.sql
+├── 08_security_roles.sql
+├── 10_create_synthetic_paper_documents.sql
 │
 ├── embed_papers.py
-├── generate_seed.py
-├── package.json
 ├── .env.example
+├── package.json
 └── README.md
 ```
 
-## 9. Installation and Setup
+**Application code:** Contains the Next.js pages, API routes, and reusable interface components.
+
+**Database scripts:** Contain table definitions, schema modifications, seed data, SQL queries, functions, triggers, tests, and database security configuration.
+
+**Embedding utilities:** Contain the Python scripts used to generate and maintain paper and researcher embeddings.
+
+## 7. Setup and Installation
 
 ### Prerequisites
 
-- Node.js and npm.
-- Python.
-- A Neon PostgreSQL database.
-- Git.
-- A Hugging Face model download connection for the first embedding generation.
+- Node.js and npm
+- Python 3
+- PostgreSQL database with the pgvector extension
+- Git
 
 ### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/Nishkaa25/research-paper-collaboration-matcher.git
-cd research-paper-collaboration-matcher
+git clone <repository-url>
+cd <repository-folder>
 ```
 
-### Step 2: Install Node.js dependencies
+### Step 2: Install application dependencies
 
 ```bash
 npm install
@@ -348,102 +196,83 @@ npm install
 
 ### Step 3: Configure environment variables
 
-Create a `.env.local` file in the project root.
+Create a `.env.local` file in the project root using `.env.example` as a reference.
 
-Configure the required environment variables using `.env.example` as the reference.
+Configure the database connection and any other required environment variables.
 
-At minimum, the application requires the Neon PostgreSQL connection string:
+For the Neon database, use the appropriate PostgreSQL connection string.
 
-```env
-DATABASE_URL=your_neon_database_connection_string
-```
-
-Never commit `.env.local` or expose database credentials publicly.
+**Do not commit `.env.local` or database credentials to GitHub.**
 
 ### Step 4: Set up the database
 
-Execute the SQL scripts against the configured PostgreSQL database in the appropriate order.
+Connect to your PostgreSQL database and execute the SQL scripts in their required dependency order.
 
-The scripts establish the schema, relationships, constraints, views, functions, triggers, seed data, and synthetic document storage.
+The scripts provide the database schema, relationships, seed data, views, functions, triggers, security configuration, and supporting data.
 
-The pgvector extension must be available in the database.
+The paper-document script can also be used to populate the synthetic full-text documents used by the paper reader.
 
-### Step 5: Start the Next.js application
+### Step 5: Generate embeddings
 
-```bash
-npm run dev
-```
-
-Open:
-
-```text
-http://localhost:3000
-```
-
-### Step 6: Install Python dependencies for embedding generation
-
-Create a Python virtual environment and install the required libraries:
+Set up a Python environment for the embedding utilities:
 
 ```bash
 python -m venv .venv-embeddings
 ```
 
-On Windows:
+Activate it on Windows:
 
 ```powershell
-.\.venv-embeddings\Scripts\python.exe -m pip install sentence-transformers psycopg[binary] pgvector numpy
+.\.venv-embeddings\Scripts\Activate.ps1
 ```
 
-### Step 7: Generate paper and researcher embeddings
+Install the required Python dependencies and configure database connectivity. Then run:
 
-Ensure `DATABASE_URL` is configured in the environment and run:
-
-```powershell
-.\.venv-embeddings\Scripts\python.exe .\embed_papers.py
+```bash
+python embed_papers.py
 ```
 
-This process loads the pretrained MiniLM model, retrieves paper records, generates paper embeddings, stores the vectors in Neon, and rebuilds researcher-level embeddings.
+This generates paper embeddings and researcher embeddings using the Sentence Transformers model.
 
-### Step 8: Run individual embedding and document utilities
+### Step 6: Run the application
 
-The `scripts/` directory contains utilities for embedding individual papers and generating or refreshing synthetic full-text paper documents.
+```bash
+npm run dev
+```
 
-Refer to the relevant script before executing it to understand its database requirements and operation.
+Open the application at:
 
-## 10. Future Enhancements
+```text
+http://localhost:3000
+```
 
-Potential future improvements include:
+To check whether the application builds successfully:
 
-- Integration with real research-paper repositories and APIs.
-- Retrieval of verified paper metadata and publication URLs.
-- Access to publicly available full-text research papers.
-- More advanced researcher representations using publication history and research interests.
-- Larger-scale semantic retrieval and vector indexing.
-- Improved ranking using topic overlap, publication relevance, and collaboration history.
-- Automated ingestion of new research papers.
-- More extensive evaluation using real research datasets.
-- Improved recommendation explainability.
+```bash
+npm run build
+```
 
-## 11. Important Project Limitations
+## 8. Deployment
 
-- The current demonstration dataset is synthetic.
-- Synthetic paper documents are generated for demonstration and are not verified academic publications.
-- MiniLM embeddings represent semantic information in the supplied text; they do not independently verify its factual accuracy.
-- Similarity scores indicate vector similarity, not guaranteed research compatibility.
-- The current project is a research collaboration prototype, not a production-validated recommendation system.
+The Next.js application can be deployed using **Vercel**.
 
-## 12. Repository
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Configure the required environment variables in the Vercel project settings.
+4. Connect the application to the Neon PostgreSQL database.
+5. Deploy and verify the application.
 
-**GitHub:** https://github.com/Nishkaa25/research-paper-collaboration-matcher
+The Python embedding utilities are separate from the Next.js deployment and should be run as part of the database setup or maintenance process.
+
+## 9. Dataset and Limitations
+
+The project currently uses a synthetic research dataset to demonstrate paper discovery, researcher matching, and collaboration workflows.
+
+The embedding generation uses the pretrained `all-MiniLM-L6-v2` model. The paper content itself is synthetic and should not be interpreted as verified peer-reviewed academic research.
+
+The project is an academic prototype demonstrating the integration of relational database concepts, semantic embeddings, and vector similarity search.
 
 ---
 
-**Developed by**
-
-**Nishkaa V** — PES2UG24CS907  
-**Arjav Chandranath** — PES2UG24CS080
-
-PES University  
-Department of Computer Science and Engineering
-
-DBMS Experiential Learning – Level 3 Project
+**DBMS Experiential Learning – Level 3 Project**  
+Department of Computer Science and Engineering, PES University
