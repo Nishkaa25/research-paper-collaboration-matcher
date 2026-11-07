@@ -9,9 +9,6 @@ The system uses natural language processing and vector-based search to go beyond
 **Nishkaa V** — PES2UG24CS907  
 **Arjav Chandranath** — PES2UG24CS080
 
-Department of Computer Science and Engineering  
-PES University
-
 ---
 
 ## 1. Project Overview
