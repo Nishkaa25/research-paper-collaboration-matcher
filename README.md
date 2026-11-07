@@ -4,11 +4,12 @@ A web-based platform that helps researchers discover relevant research papers an
 
 The system uses natural language processing and vector-based search to go beyond keyword matching. Researchers can explore papers, find people working in related areas, and manage collaboration requests through a single platform.
 
-## Team
+## Team - 14 
 
-**Nishkaa V** — PES2UG24CS907  
-**Arjav Chandranath** — PES2UG24CS080
-
+| Name | SRN |
+|---|---|
+| Nishkaa V | PES2UG24CS907 |
+| Arjav Chandranath | PES2UG24CS080 |
 ---
 
 ## 1. Project Overview
