@@ -105,16 +105,6 @@ This creates a consolidated representation of the researcher's overall interests
 
 The resulting researcher embedding is stored in `researcher_embedding`.
 
-### Why all-MiniLM-L6-v2?
-
-The model was selected because it provides relatively lightweight sentence embeddings while capturing semantic relationships between text.
-
-For example, a search for:
-
-`Privacy-aware distributed computing`
-
-may retrieve papers discussing federated learning, secure distributed systems, and privacy-preserving computation, even when the exact search phrase does not appear in their abstracts.
-
 ## 4. How pgvector Is Used
 
 pgvector is a PostgreSQL extension that enables vector storage and similarity operations directly inside the relational database.
