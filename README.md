@@ -267,8 +267,6 @@ The project currently uses a synthetic research dataset to demonstrate paper dis
 
 The embedding generation uses the pretrained `all-MiniLM-L6-v2` model. The paper content itself is synthetic and should not be interpreted as verified peer-reviewed academic research.
 
-The project is an academic prototype demonstrating the integration of relational database concepts, semantic embeddings, and vector similarity search.
-
 ---
 
 **DBMS Experiential Learning – Level 3 Project**  
