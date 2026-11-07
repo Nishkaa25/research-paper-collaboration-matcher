@@ -1,0 +1,220 @@
+--- Q1  JOIN + aggregate: most published researchers with their institution
+      full_name      |           institution            | papers 
+---------------------+----------------------------------+--------
+ Karthik Subramanian | Indian Institute of Science      |      7
+ Elena Fischer       | ETH Zurich                       |      5
+ Li Wei              | National University of Singapore |      5
+ Sophie Laurent      | University of Oxford             |      5
+ Ananya Rao          | PES University                   |      4
+(5 rows)
+
+--- Q2  GROUP BY + HAVING: venues with at least 4 papers, and their average year
+                venue                 |    type    | papers | avg_year 
+--------------------------------------+------------+--------+----------
+ IEEE Transactions on Cloud Computing | Journal    |      7 |   2023.1
+ arXiv                                | Preprint   |      7 |   2023.0
+ ACL                                  | Conference |      5 |   2023.2
+ NeurIPS                              | Conference |      5 |   2022.8
+ VLDB                                 | Conference |      5 |   2022.6
+(5 rows)
+
+--- Q3  Institutions ranked by distinct papers (multi-join, COUNT DISTINCT)
+              institution              |    country     | researchers | papers 
+---------------------------------------+----------------+-------------+--------
+ IIT Madras                            | India          |           3 |     11
+ PES University                        | India          |           3 |     11
+ National University of Singapore      | Singapore      |           2 |      9
+ University of Oxford                  | United Kingdom |           2 |      8
+ ETH Zurich                            | Switzerland    |           2 |      8
+ Indian Institute of Science           | India          |           2 |      8
+ Microsoft Research India              | India          |           2 |      7
+ Massachusetts Institute of Technology | United States  |           2 |      7
+(8 rows)
+
+--- Q4  Subquery: researchers with more papers than the average author
+      full_name      | papers 
+---------------------+--------
+ Karthik Subramanian |      7
+ Elena Fischer       |      5
+ Li Wei              |      5
+ Sophie Laurent      |      5
+ Ananya Rao          |      4
+ Arjun Menon         |      4
+ Farah Ahmed         |      4
+ Hannah Cole         |      4
+ James Whitaker      |      4
+ Meera Iyer          |      4
+ Rajesh Pillai       |      4
+ Rohan Deshpande     |      4
+ Sanjay Gupta        |      4
+ Thomas Becker       |      4
+ Vikram Malhotra     |      4
+(15 rows)
+
+--- Q5  NOT EXISTS: researchers who have never sent a collaboration request
+ researcher_id |    full_name    
+---------------+-----------------
+             3 | Meera Iyer
+             5 | Priya Natarajan
+             7 | Elena Fischer
+             8 | James Whitaker
+             9 | Li Wei
+            11 | Vikram Malhotra
+(6 rows)
+
+--- Q6  Self-join: strongest existing co-authorship pairs
+    author_1     |   author_2    | joint_papers 
+-----------------+---------------+--------------
+ Meera Iyer      | Farah Ahmed   |            2
+ Vikram Malhotra | Neha Kulkarni |            2
+(2 rows)
+
+--- Q7  CTE + window function: rank researchers by h-index inside each institution
+              institution              |      full_name      | h_index | rank_in_institution 
+---------------------------------------+---------------------+---------+---------------------
+ ETH Zurich                            | Elena Fischer       |      38 |                   1
+ Massachusetts Institute of Technology | James Whitaker      |      33 |                   1
+ Indian Institute of Science           | Karthik Subramanian |      27 |                   1
+ Max Planck Institute for Informatics  | Aisha Rahman        |      26 |                   1
+ National University of Singapore      | Li Wei              |      24 |                   1
+ University of Oxford                  | Sophie Laurent      |      22 |                   1
+ Microsoft Research India              | Priya Natarajan     |      21 |                   1
+ IIT Madras                            | Meera Iyer          |      19 |                   1
+ Indian Space Research Organisation    | Arjun Menon         |      15 |                   1
+ PES University                        | Ananya Rao          |      14 |                   1
+(10 rows)
+
+--- Q8  INTERSECT: researchers active in BOTH Cloud Computing and Machine Learning
+      full_name      
+---------------------
+ Ananya Rao
+ Elena Fischer
+ Farah Ahmed
+ James Whitaker
+ Karthik Subramanian
+ Rajesh Pillai
+(6 rows)
+
+--- Q9  Materialised view: research-topic trend (papers per topic per year, top rows)
+            topic            | publication_year | papers | researchers 
+-----------------------------+------------------+--------+-------------
+ Machine Learning            |             2023 |      7 |          11
+ Deep Learning               |             2024 |      4 |           7
+ Deep Learning               |             2023 |      4 |           6
+ Distributed Systems         |             2022 |      4 |           5
+ Machine Learning            |             2024 |      4 |           7
+ Natural Language Processing |             2024 |      4 |           4
+(6 rows)
+
+--- Q10 Full-text search: ranked keyword search with highlighted snippet
+ paper_id |                                   title                                   | rank  |                                        snippet                                        
+----------+---------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------
+       28 | Safe Exploration in Reinforcement Learning                                | 0.998 | [[reinforcement]] [[learning]] agents avoid unsafe states during training
+        1 | Adaptive Autoscaling of Cloud Workloads Using Deep Reinforcement Learning | 0.997 | [[reinforcement]] [[learning]] to scale virtual machines under bursty
+       27 | Sample-Efficient Reinforcement Learning for Robotic Manipulation          | 0.997 | [[learn]] grasping policies with model-based [[reinforcement]] [[learning]]
+       25 | Learning-Based Congestion Control for Data-Centre Networks                | 0.548 | [[reinforcement]] [[learning]] congestion controller adapts sending rates to changing
+(4 rows)
+
+--- Q11 Full-text search: boolean operators (websearch syntax)
+ paper_id |                        title                         
+----------+------------------------------------------------------
+       34 | Graph Embeddings for Knowledge Graph Completion
+        8 | Query Optimisation with Graph Neural Networks
+       29 | Multi-Robot Path Planning with Graph Neural Networks
+(3 rows)
+
+--- Q12 Fuzzy name search (pg_trgm): tolerates spelling mistakes
+      full_name      | name_similarity 
+---------------------+-----------------
+ Karthik Subramanian |           0.640
+(1 row)
+
+--- Q13 Vector similarity: papers most similar to paper 9 (cosine distance operator <=>)
+ paper_id |                           title                            | cosine_similarity 
+----------+------------------------------------------------------------+-------------------
+        7 | Learned Index Structures for Range Queries                 |            0.5240
+        6 | Consistency Trade-offs in Geo-Replicated Databases         |            0.4657
+       10 | Hybrid Keyword and Semantic Retrieval for Scholarly Search |            0.4624
+       24 | Privacy-Preserving Query Processing on Encrypted Data      |            0.4401
+       30 | Explainable Recommendation Interfaces for Researchers      |            0.4323
+(5 rows)
+
+--- Q14 Collaborator recommendation for researcher 1 (vector search + relational enrichment)
+ researcher_id |      full_name      |              institution              | similarity | shared_topics | already_coauthored 
+---------------+---------------------+---------------------------------------+------------+---------------+--------------------
+            17 | Rajesh Pillai       | IIT Madras                            |     0.5437 |             3 | f
+             8 | James Whitaker      | Massachusetts Institute of Technology |     0.5080 |             3 | t
+            15 | Thomas Becker       | ETH Zurich                            |     0.4418 |             3 | t
+             7 | Elena Fischer       | ETH Zurich                            |     0.4218 |             4 | t
+             2 | Karthik Subramanian | Indian Institute of Science           |     0.3758 |             5 | f
+(5 rows)
+
+--- Q15 Hybrid: cross-country matches with no shared paper and no existing request
+  researcher_1   |            institution_1             |  researcher_2   |      institution_2       | similarity_score 
+-----------------+--------------------------------------+-----------------+--------------------------+------------------
+ Hannah Cole     | University of Oxford                 | Farah Ahmed     | Microsoft Research India |           0.4893
+ Aisha Rahman    | Max Planck Institute for Informatics | Hannah Cole     | University of Oxford     |           0.4406
+ Aisha Rahman    | Max Planck Institute for Informatics | Farah Ahmed     | Microsoft Research India |           0.4150
+ Vikram Malhotra | IIT Madras                           | Hannah Cole     | University of Oxford     |           0.4048
+ Sophie Laurent  | University of Oxford                 | Vikram Malhotra | IIT Madras               |           0.4016
+(5 rows)
+
+--- Q16 Request pipeline summary (GROUP BY status) 
+  status   | requests 
+-----------+----------
+ Pending   |        5
+ Accepted  |        3
+ Rejected  |        1
+ Withdrawn |        1
+(4 rows)
+
+--- Q17 Inbox of researcher 7 (view)
+ request_id | sender_name | proposed_topic |                     title                     | status  
+------------+-------------+----------------+-----------------------------------------------+---------
+          4 | Sameer Khan | Cybersecurity  | Robust intrusion detection in the data centre | Pending
+(1 row)
+
+--- Q18 Profile view
+ researcher_id |      full_name       |  institution   | paper_count |                                                      topics                                                       | has_embedding 
+---------------+----------------------+----------------+-------------+-------------------------------------------------------------------------------------------------------------------+---------------
+             1 | Ananya Rao           | PES University |           4 | Cloud Computing (5), Cybersecurity (3), Distributed Systems (3), Machine Learning (3), Reinforcement Learning (3) | t
+            21 | Portal Administrator | PES University |           0 | -                                                                                                                 | f
+(2 rows)
+
+--- Q19 Authentication: correct password, wrong password, unknown user
+     attempt      | rows_returned 
+------------------+---------------
+ correct password |             1
+ wrong password   |             0
+ unknown user     |             0
+(3 rows)
+
+ researcher_id |      full_name       | role  
+---------------+----------------------+-------
+            21 | Portal Administrator | admin
+(1 row)
+
+--- Q20 Query plan: HNSW index used for nearest-neighbour search
+SET
+                                    QUERY PLAN                                    
+----------------------------------------------------------------------------------
+ Limit
+   InitPlan 1 (returns $0)
+     ->  Index Scan using pk_paper_embedding on paper_embedding paper_embedding_1
+           Index Cond: (paper_id = 9)
+   ->  Index Scan using idx_paper_embedding_hnsw on paper_embedding
+         Order By: (embedding <=> $0)
+(6 rows)
+
+RESET
+--- Q21 Query plan: GIN index used for full-text search
+SET
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+ Bitmap Heap Scan on paper
+   Recheck Cond: (search_vector @@ '''cloud'' & ''schedul'''::tsquery)
+   ->  Bitmap Index Scan on idx_paper_fts
+         Index Cond: (search_vector @@ '''cloud'' & ''schedul'''::tsquery)
+(4 rows)
+
+RESET

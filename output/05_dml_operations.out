@@ -1,0 +1,140 @@
+=== INSERT ===========================================================
+ affiliation_id |                 name                  
+----------------+---------------------------------------
+             11 | Indian Institute of Technology Bombay
+(1 row)
+
+INSERT 0 1
+ researcher_id |  full_name   |             email             |    role    | hash_prefix 
+---------------+--------------+-------------------------------+------------+-------------
+            22 | Ishaan Verma | ishaan.verma@iitb.example.edu | researcher | $2a$06$
+(1 row)
+
+INSERT 0 1
+BEGIN
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+COMMIT
+ profiles_refreshed 
+--------------------
+                 21
+(1 row)
+
+ researcher_id |    full_name    |             institution              | similarity | shared_topics | already_coauthored 
+---------------+-----------------+--------------------------------------+------------+---------------+--------------------
+            12 | Aisha Rahman    | Max Planck Institute for Informatics |     0.8551 |             2 | f
+             4 | Rohan Deshpande | PES University                       |     0.6125 |             1 | f
+            19 | Sanjay Gupta    | National University of Singapore     |     0.5027 |             2 | f
+            10 | Sophie Laurent  | University of Oxford                 |     0.3417 |             1 | f
+(4 rows)
+
+DO
+=== UPDATE ===========================================================
+ researcher_id | h_index |                                                     bio                                                      
+---------------+---------+--------------------------------------------------------------------------------------------------------------
+            22 |       7 | Works on vector databases and semantic search for scholarly data. Currently building a hybrid search engine.
+(1 row)
+
+UPDATE 1
+BEGIN
+ researcher_id | topic_id | expertise_level 
+---------------+----------+-----------------
+             3 |        1 |               5
+             5 |        4 |               5
+             9 |        2 |               5
+            10 |        9 |               5
+            11 |        2 |               5
+            12 |        9 |               5
+            13 |        2 |               5
+            13 |       14 |               5
+            16 |       12 |               5
+            17 |        6 |               5
+            17 |        1 |               5
+            18 |        3 |               5
+(12 rows)
+
+UPDATE 12
+ROLLBACK
+ request_id | status  | updated_at_changed 
+------------+---------+--------------------
+         11 | Pending | t
+(1 row)
+
+UPDATE 1
+REFRESH MATERIALIZED VIEW
+=== TRANSACTIONS ======================================================
+BEGIN
+ matches_before 
+----------------
+             37
+(1 row)
+
+DELETE 37
+ matches_inside_txn 
+--------------------
+                  0
+(1 row)
+
+ROLLBACK
+ matches_after_rollback 
+------------------------
+                     37
+(1 row)
+
+BEGIN
+UPDATE 1
+SAVEPOINT
+UPDATE 1
+ROLLBACK
+ researcher_id | h_index_keeps_first_update 
+---------------+----------------------------
+             1 |                         15
+(1 row)
+
+ROLLBACK
+BEGIN
+CALL
+ request_id |  status  
+------------+----------
+          4 | Accepted
+(1 row)
+
+ match_id | researcher_1_id | researcher_2_id | similarity_score 
+----------+-----------------+-----------------+------------------
+       18 |               6 |               7 |           0.4954
+(1 row)
+
+ROLLBACK
+=== DELETE ===========================================================
+psql:05_dml_operations.sql:135: NOTICE:  BLOCKED as expected: update or delete on table "researcher" violates foreign key constraint "fk_pa_researcher" on table "paper_author"
+DO
+ paper_id |                               title                               
+----------+-------------------------------------------------------------------
+       41 | Approximate Nearest Neighbour Search for Scholarly Recommendation
+(1 row)
+
+DELETE 1
+DELETE 1
+ researcher_id |  full_name   
+---------------+--------------
+            22 | Ishaan Verma
+(1 row)
+
+DELETE 1
+ affiliation_id |                 name                  
+----------------+---------------------------------------
+             11 | Indian Institute of Technology Bombay
+(1 row)
+
+DELETE 1
+psql:05_dml_operations.sql:154: NOTICE:  BLOCKED as expected: update or delete on table "affiliation" violates foreign key constraint "fk_researcher_affiliation" on table "researcher"
+DO
+REFRESH MATERIALIZED VIEW
+ profiles_refreshed_after_cleanup 
+----------------------------------
+                               20
+(1 row)
+

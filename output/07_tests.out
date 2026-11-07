@@ -1,0 +1,64 @@
+ id  |  category   |                                description                                | result 
+-----+-------------+---------------------------------------------------------------------------+--------
+ T01 | Domain      | Invalid e-mail format                                                     | PASS
+ T02 | Domain      | Blank researcher name                                                     | PASS
+ T03 | Domain      | Invalid affiliation type                                                  | PASS
+ T04 | Domain      | Website must start with http(s)                                           | PASS
+ T05 | Domain      | Publication year out of range (1800)                                      | PASS
+ T06 | Domain      | Malformed DOI                                                             | PASS
+ T07 | Domain      | Expertise level outside 1-5                                               | PASS
+ T08 | Domain      | Negative impact factor                                                    | PASS
+ T09 | Domain      | Similarity score above 1                                                  | PASS
+ T10 | Domain      | ORCID in wrong format                                                     | PASS
+ T11 | Domain      | Unknown role value                                                        | PASS
+ T12 | Security    | Plain-text password rejected (must be bcrypt hash)                        | PASS
+ T13 | Security    | Stored passwords are bcrypt hashes for every account                      | PASS
+ T14 | Uniqueness  | NULL researcher name                                                      | PASS
+ T15 | Uniqueness  | Duplicate e-mail (case-insensitive via trigger)                           | PASS
+ T16 | Uniqueness  | Duplicate DOI                                                             | PASS
+ T17 | Uniqueness  | Duplicate topic name                                                      | PASS
+ T18 | Uniqueness  | Same researcher added twice to a paper (composite PK)                     | PASS
+ T19 | Uniqueness  | Two authors in the same position on a paper                               | PASS
+ T20 | Uniqueness  | Second corresponding author on a paper                                    | PASS
+ T21 | Uniqueness  | Duplicate match pair                                                      | PASS
+ T22 | Uniqueness  | Duplicate PENDING request (partial unique index)                          | PASS
+ T23 | Referential | Researcher with non-existent affiliation                                  | PASS
+ T24 | Referential | Authorship for non-existent paper                                         | PASS
+ T25 | Referential | Deleting a researcher who has papers (RESTRICT)                           | PASS
+ T26 | Referential | Deleting an affiliation that has researchers (RESTRICT)                   | PASS
+ T27 | Referential | Collaboration request to non-existent receiver                            | PASS
+ T28 | Vector      | Embedding with wrong dimension (3 instead of 384)                         | PASS
+ T29 | Vector      | Second embedding for the same paper (1:1 via PK)                          | PASS
+ T30 | Trigger     | Self-collaboration request                                                | PASS
+ T31 | Trigger     | Reverting an Accepted request to Pending                                  | PASS
+ T32 | Trigger     | Changing the receiver of an existing request                              | PASS
+ T33 | Trigger     | Invalid request status value                                              | PASS
+ T34 | Trigger     | E-mail normalised to lower case and trimmed                               | PASS
+ T35 | Trigger     | Match pair (larger,smaller) is stored as (smaller,larger)                 | PASS
+ T36 | Trigger     | updated_at refreshed automatically on UPDATE                              | PASS
+ T37 | Trigger     | Deactivated researcher cannot send a request                              | PASS
+ T38 | Security    | Deactivated account cannot authenticate                                   | PASS
+ T39 | Procedure   | Only the receiver may respond to a request                                | PASS
+ T40 | Procedure   | A finished request cannot be answered again                               | PASS
+ T41 | Procedure   | Invalid decision value                                                    | PASS
+ T42 | Procedure   | Cannot send a request when the other party already has one pending to you | PASS
+ T43 | Procedure   | Only the sender may withdraw a request                                    | PASS
+ T44 | Transaction | Failed procedure leaves no partial change (atomicity)                     | PASS
+ T45 | Transaction | Accepting a request records the pair in match_result                      | PASS
+ T46 | Cascade     | Deleting a paper removes its embedding, topics and author links           | PASS
+ T47 | Cascade     | Deleting a venue keeps the paper and sets venue_id to NULL                | PASS
+ T48 | Cascade     | Deleting a topic removes its paper/researcher links only                  | PASS
+ T49 | Search      | Full-text search finds papers by stemmed keyword                          | PASS
+ T50 | Search      | A paper is its own nearest neighbour (similarity = 1)                     | PASS
+(50 rows)
+
+ total_tests | passed | failed 
+-------------+--------+--------
+          50 |     50 |      0
+(1 row)
+
+ id | description | expected | actual 
+----+-------------+----------+--------
+(0 rows)
+
+ROLLBACK
